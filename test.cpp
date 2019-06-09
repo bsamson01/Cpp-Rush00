@@ -4,10 +4,23 @@
 #include <time.h>
 #include <thread>
 #include <unistd.h>
+#include <sys/time.h>
+#include <locale.h>
 #include "Player.hpp"
 #include "Game.hpp"
-#include "Dots.hpp"
 #include "Bullet.hpp"
+
+int diff_ms(timeval t1, timeval t2)
+{
+    return (((t1.tv_sec - t2.tv_sec) * 1000000) + 
+            (t1.tv_usec - t2.tv_usec))/1000;
+}
+
+long currentTimeMicro() {
+    struct timeval currentTime;
+    gettimeofday(&currentTime, NULL);
+    return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
+}
 
 int kbhit(void) {
 	int ch, r;
@@ -29,77 +42,89 @@ int kbhit(void) {
 
 int main(int ac, char **av)
 {
-    Player  player;
+
+    (void)av;
+    (void)ac;
     Game    game;
-    Dots mydots[47][20];
     Bullet mybullets[46];
 
     char gun[4] = "<^>";
     char blank[4] = "   ";
-    char enemy[2] = "#";
     char bullet[2] =  "0";
 
+    std::string stars = "";
+    for (int i = 0; i < game.width * game.height; ++i)
+        for (int j = 0; j < game.height; ++j)
+            stars += (rand() % 50 > 30) ? "." : " ";
     for (int i = 0; i < 46; i++)
-        mybullets[i].setPos(player.getPosX(), player.getPosY() - i);
+        game.mybullets[i].setPos(game.player.getPosX(), game.player.getPosY() - i);
 
-    for (int i = 0; i < 47; i++)
-        for (int y = 0; y < 20; y++)
-            mydots[i][y].setY(i);
+    long ggg = 0;
+    int n = 1;
 
-    mvwprintw(game.gameWin(), player.getPosY(), player.getPosX(), gun);
+
+
+    long now = currentTimeMicro();
+    start_color();
 
     while (1)
     {
-        if (kbhit())
+
+        //Game.tick();
+        //Game.render();
+        ggg++;
+        if (now - currentTimeMicro() < -20000)
         {
-            int   c = getch();
-            switch(c)
+            mvprintw(0, 0, "times %d", ggg);
+            mvprintw(0, 10, "ups %d", 50);
+            mvprintw(0, 30, "times %d %d", game.player.getPosY(), game.player.getPosX());
+            ggg = 0;
+
+            now = currentTimeMicro();
+
+
+
+            // GAMEPLAY
+            // keyboard input
+            if (kbhit())
             {
-                case KEY_UP:
-                    mvwprintw(game.gameWin(), player.getPosY(), player.getPosX(), blank);
-                    player.mvUp();
-                    break;
-                case KEY_DOWN:
-                    mvwprintw(game.gameWin(), player.getPosY(), player.getPosX(), blank);
-                    player.mvDown();
-                    break;
-                case KEY_RIGHT:
-                    mvwprintw(game.gameWin(), player.getPosY(), player.getPosX(), blank);
-                    player.mvRight();
-                    break;
-                case KEY_LEFT:
-                    mvwprintw(game.gameWin(), player.getPosY(), player.getPosX(), blank);
-                    player.mvLeft();
-                    break;
+                int   c = getch();
+                if (c == KEY_UP)
+                    game.player.mvUp();
+                else if (c == KEY_DOWN)
+                    game.player.mvDown();
+                else if (c == KEY_RIGHT)
+                    game.player.mvRight();
+                else if (c == KEY_LEFT)
+                    game.player.mvLeft();
+                else if (c == ' ')//spacebar
+                    game.player.mvUp();
+            
             }
-        }
 
-        for (int i = 0; i < 47; i++)
-        {
-            for (int x = 0; x < 20; x++)
+            // draw box and starfield
+            box(game.gameWin(), 0, 0);
+            //wattron(game.gameWin(), COLOR_PAIR(1));
+            for (int i = 1; i < game.height - 1; ++i)
+                for (int j = 1; j < game.width - 1; ++j)
+                    mvwprintw(game.gameWin(), i, j, "%c", stars[i * game.width + j]);
+            //wattroff(game.gameWin(), COLOR_PAIR(1));
+
+                //bullets
+            for (int i = 0; i < 46; i++)
             {
-                mvprintw(mydots[i][x].getPosY(), mydots[i][x].getPosX(), " ");
-                mydots[i][x].move();
-                if (mydots[i][x].getPosY() > 49)
-                    mydots[i][x].reset();
-                mvprintw(mydots[i][x].getPosY(), mydots[i][x].getPosX(), ".");
+                game.mybullets[i].move();
+                if (game.mybullets[i].getPosY() <= 1)
+                    game.mybullets[i].setPos(game.player.getPosX(), game.player.getPosY());
+                mvwprintw(game.gameWin(), game.mybullets[i].getPosY(), game.mybullets[i].getPosX(), bullet);
             }
+
+            mvwprintw(game.gameWin(), game.player.getPosY(), game.player.getPosX(), gun);
+            //refresh();
+            wrefresh(game.gameWin());
         }
-
-        for (int i = 0; i < 46; i++)
-        {
-            mybullets[i].move();
-            if (mybullets[i].getPosY() <= 1)
-                mybullets[i].setPos(player.getPosX(), player.getPosY());
-            mvprintw(mybullets[i].getPosY(), mybullets[i].getPosX(), bullet);
-        }
-
-
-        mvwprintw(game.gameWin(), player.getPosY(), player.getPosX(), gun);
-        wrefresh(game.gameWin());
-        usleep(50000);
+        //usleep(50000);
     }
-
     endwin();
     return  0;
 }

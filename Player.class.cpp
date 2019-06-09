@@ -2,8 +2,8 @@
 
 Player::Player()
 {
-    this->posX = 33;
-    this->posY = 48;
+    this->posX = 5;
+    this->posY = 5;
 }
 
 Player::~Player()
@@ -12,26 +12,22 @@ Player::~Player()
 
 void    Player::mvLeft()
 {
-    if (this->posX > 1)
-        this->posX--;
+    this->posX--;
 }
 
 void    Player::mvRight()
 {
-    if (this->posX < 66)
-        this->posX++;
+    this->posX++;
 }
 
 void    Player::mvDown()
 {
-    if (this->posY < 48)
-        this->posY++;
+    this->posY++;
 }
 
 void    Player::mvUp()
 {
-    if (this->posY > 1)
-        this->posY--;
+    this->posY--;
 }
 
 int     Player::getPosX()
