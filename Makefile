@@ -1,14 +1,14 @@
 
 
 CC = clang++
-FLAGS = -lncurses
+FLAGS = -Wall -Wextra -Werror -lncurses
 NAME = ft_retro
-FILE = test.cpp Player.class.cpp Game.class.cpp Bullet.class.cpp
+FILE = main.cpp Player.class.cpp Game.class.cpp Collider.class.cpp
 
 
 all : $(NAME)
 
-$(NAME) :
+$(NAME):
 	@$(CC) $(FLAGS) $(FILE) -o $(NAME)
 
 clean :
@@ -17,4 +17,3 @@ fclean : clean
 	@rm -rf $(NAME)
 
 re : fclean all
-
