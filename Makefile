@@ -1,7 +1,7 @@
 
 
-CC = clang++
-FLAGS = -Wall -Wextra -Werror -lncurses
+CC = g++
+FLAGS = -Wall -Wextra -Werror -lncurses -ltinfo
 NAME = ft_retro
 FILE = main.cpp Player.class.cpp Game.class.cpp Collider.class.cpp
 
